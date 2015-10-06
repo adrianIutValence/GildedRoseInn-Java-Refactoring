@@ -3,16 +3,17 @@ package fr.iutvalence.info.dut.m3105.gildedroseinn.refactoring;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GildedRose
-{
+public class GildedRose {
 
+	private static final int AVERAGE_SELL_IN = 11;
+	private static final int MINIMUM_SELL_IN = 6;
+	private static final int MINIMUM_QUALITY = 50;
 	private static List<Item> items = null;
 
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 
 		System.out.println("OMGHAI!");
 
@@ -24,83 +25,73 @@ public class GildedRose
 		items.add(new Item("Backstage passes to a TAFKAL80ETC concert", 15, 20));
 		items.add(new Item("Conjured Mana Cake", 3, 6));
 
-		updateQuality();
+		updateQualityAndSellInForAllItems();
 	}
 
-	public static void updateQuality()
-	{
-		for (int i = 0; i < items.size(); i++)
-		{
-			if ((!"Aged Brie".equals(items.get(i).getName()))
-					&& !"Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName()))
-			{
-				if (items.get(i).getQuality() > 0)
-				{
-					if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
-					{
-						items.get(i).setQuality(items.get(i).getQuality() - 1);
-					}
-				}
-			}
-			else
-			{
-				if (items.get(i).getQuality() < 50)
-				{
-					items.get(i).setQuality(items.get(i).getQuality() + 1);
+	public static void updateQualityAndSellInForAllItems() {
+		items.parallelStream().filter(e -> !isLegendary(e)).forEach(GildedRose::updateAndSellInForNonLegenday);
+	}
 
-					if ("Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName()))
-					{
-						if (items.get(i).getSellIn() < 11)
-						{
-							if (items.get(i).getQuality() < 50)
-							{
-								items.get(i).setQuality(items.get(i).getQuality() + 1);
-							}
-						}
+	private static void updateAndSellInForNonLegenday(Item item) {
+		updateQuality(item);
+		updateSellInForItem(item);
+	}
+	private static boolean isLegendary(Item item) {
+		return item.getName().equals("Sulfuras, Hand of Ragnaros");
+	}
 
-						if (items.get(i).getSellIn() < 6)
-						{
-							if (items.get(i).getQuality() < 50)
-							{
-								items.get(i).setQuality(items.get(i).getQuality() + 1);
-							}
-						}
-					}
-				}
-			}
+	private static void updateQuality(Item item) {
+		switch (item.getName()) {
+		case "Aged Brie":
+			updateQualityAgedBrie(item);
+			break;
 
-			if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
-			{
-				items.get(i).setSellIn(items.get(i).getSellIn() - 1);
-			}
+		case "Backstage passes to a TAFKAL80ETC concert":
+			updateQualityBackstage(item);
+			break;
 
-			if (items.get(i).getSellIn() < 0)
-			{
-				if (!"Aged Brie".equals(items.get(i).getName()))
-				{
-					if (!"Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName()))
-					{
-						if (items.get(i).getQuality() > 0)
-						{
-							if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName()))
-							{
-								items.get(i).setQuality(items.get(i).getQuality() - 1);
-							}
-						}
-					}
-					else
-					{
-						items.get(i).setQuality(items.get(i).getQuality() - items.get(i).getQuality());
-					}
-				}
-				else
-				{
-					if (items.get(i).getQuality() < 50)
-					{
-						items.get(i).setQuality(items.get(i).getQuality() + 1);
-					}
-				}
-			}
+		case "Sulfuras, Hand of Ragnaros":
+			updateQualitySulfuras(item);
+			break;
+
+		default:
+			updateQualitySulfuras(item);
+			break;
+
+		}
+	}
+
+	private static void updateQualitySulfuras(Item item) {
+		if (item.getQuality() > 0)
+			item.setQuality(item.getQuality() - 1);
+	}
+
+	private static void updateQualityBackstage(Item item) {
+		if (item.getQuality() < MINIMUM_QUALITY)
+			item.setQuality(item.getQuality() + 1);
+
+		if (item.getSellIn() < AVERAGE_SELL_IN)
+			item.setQuality(item.getQuality() + 1);
+
+		if (item.getSellIn() < MINIMUM_SELL_IN)
+			item.setQuality(item.getQuality() + 1);
+		
+		if (item.getSellIn() < 0)
+			item.setQuality(0);
+
+	}
+
+	private static void updateQualityAgedBrie(Item item) {
+		if (item.getQuality() < MINIMUM_QUALITY) {
+			if (item.getSellIn() < 0)
+				item.setQuality(item.getQuality() + 1);
+			item.setQuality(item.getQuality() + 1);
+		}
+	}
+
+	private static void updateSellInForItem(Item item) {
+		if (!"Sulfuras, Hand of Ragnaros".equals(item.getName())) {
+			item.setSellIn(item.getSellIn() - 1);
 		}
 	}
 
